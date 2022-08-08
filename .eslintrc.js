@@ -14,8 +14,11 @@ module.exports = {
 		sourceType: 'module',
 		tsconfigRootDir: __dirname,
 	},
-	plugins: ['@typescript-eslint', 'prettier'],
+	plugins: ['prettier'],
+	// plugins: ['@typescript-eslint', 'prettier'],
 	rules: {
-		'prettier/prettier': ['error'],
+		'prettier/prettier': 'error',
+		'arrow-body-style': 'off',
+		'prefer-arrow-callback': 'off',
 	},
 }
