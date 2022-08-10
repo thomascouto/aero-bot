@@ -13,12 +13,58 @@ type MyConversation = Conversation<MyContext>
 
 export class CaptainBot {
 	private bot: Bot<MyContext>
+	private commands: BotCommands[] = [
+		{
+			command: 'sigwx',
+			flag: '🇧🇷',
+		},
+		{
+			command: 'srss',
+			flag: '🇧🇷',
+		},
+		{
+			command: 'rotaer',
+			flag: '🇧🇷',
+		},
+		{
+			command: 'metar',
+			flag: '🌎',
+		},
+		{
+			command: 'taf',
+			flag: '🌎',
+		},
+		{
+			command: 'notam',
+			flag: '🇧🇷',
+		},
+	]
 
 	/**
 	 * start
 	 */
 	public async start() {
 		await this.bot.start()
+	}
+
+	private commandGenerator() {
+		for (let i = 0; i < this.commands.length; i++) {
+			const e = this.commands[i]
+
+			if (e.command === 'sigwx') {
+				this.bot.command('sigwx', async (ctx) => {
+					await ctx.reply(`${e.flag} Fetching last SIGWX chart. Standby...`)
+					const sigwxURL = await request.sigwx()
+					await ctx.replyWithPhoto(sigwxURL)
+				})
+				continue
+			}
+
+			this.bot.command(e.command, async (ctx) => {
+				await ctx.reply(`${e.flag} ICAO code:`)
+				await ctx.conversation.enter(e.command)
+			})
+		}
 	}
 
 	private async atis(conversation: MyConversation, ctx: MyContext) {
@@ -67,13 +113,6 @@ export class CaptainBot {
 		return
 	}
 
-	private atisCommand() {
-		this.bot.command('atis', async (ctx) => {
-			await ctx.reply('🇺🇸 ICAO code')
-			await ctx.conversation.enter('atis')
-		})
-	}
-
 	private async rotaer(conversation: MyConversation, ctx: MyContext) {
 		while (true) {
 			const { message } = await conversation.wait()
@@ -100,21 +139,6 @@ export class CaptainBot {
 		}
 		await ctx.reply('Bye! ✈️')
 		return
-	}
-
-	private rotaerCommand() {
-		this.bot.command('rotaer', async (ctx) => {
-			await ctx.reply('🇧🇷 ICAO code')
-			await ctx.conversation.enter('rotaer')
-		})
-	}
-
-	private sigwxCommand() {
-		this.bot.command('sigwx', async (ctx) => {
-			await ctx.reply('🇧🇷 Fetching last SIGWX chart. Standby...')
-			const sigwxURL = await request.sigwx()
-			await ctx.replyWithPhoto(sigwxURL)
-		})
 	}
 
 	private async metar(conversation: MyConversation, ctx: MyContext) {
@@ -195,26 +219,6 @@ export class CaptainBot {
 		return
 	}
 
-	private metarCommand() {
-		this.bot.command('metar', async (ctx) => {
-			await ctx.reply('🌎 ICAO code')
-			await ctx.conversation.enter('metar')
-		})
-	}
-	private tafCommand() {
-		this.bot.command('taf', async (ctx) => {
-			await ctx.reply('🌎 ICAO code')
-			await ctx.conversation.enter('taf')
-		})
-	}
-
-	private srssCommand() {
-		this.bot.command('sunrise', async (ctx) => {
-			await ctx.reply('🇧🇷 ICAO code')
-			await ctx.conversation.enter('srss')
-		})
-	}
-
 	private setup() {
 		this.bot.use(session({ initial: () => ({}) }))
 		this.bot.use(conversations())
@@ -227,12 +231,7 @@ export class CaptainBot {
 			await ctx.reply('Hello World!')
 		})
 
-		this.atisCommand()
-		this.rotaerCommand()
-		this.sigwxCommand()
-		this.metarCommand()
-		this.tafCommand()
-		this.srssCommand()
+		this.commandGenerator()
 	}
 
 	constructor() {

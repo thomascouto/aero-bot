@@ -94,3 +94,8 @@ type TafResponse = {
 		}
 	}
 }
+
+type BotCommands = {
+	command: string
+	flag: '🇧🇷' | '🌎' | '🇺🇸'
+}
