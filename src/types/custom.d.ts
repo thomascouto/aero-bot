@@ -77,7 +77,6 @@ type MetarResponse = {
 			METAR: [
 				{
 					raw_text: string
-					flight_category: string
 				}
 			]
 		}
@@ -98,4 +97,60 @@ type TafResponse = {
 type BotCommands = {
 	command: string
 	flag: '🇧🇷' | '🌎' | '🇺🇸'
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type NOTAMResponse = {
+	aisweb: {
+		notam: {
+			item: [NOTAMResponseItens]
+		}
+	}
+}
+
+type NOTAMResponseItens = {
+	id: string
+	cod: string
+	status: string
+	cat: 'AGA' | 'NAV' | 'ATM' | 'CNS' | 'OTR'
+	dist: string
+	tp: string
+	dt: string
+	n: string
+	number: string
+	ref: string
+	ref_id: string
+	ref_s: string
+	loc: string
+	b: string
+	c: string
+	d: string
+	e: string
+	f: string
+	g: string
+	nof: string
+	s: string
+	geo: string
+	geo_url: string
+	aero: string
+	cidade: string
+	uf: string
+	origem: string
+	fir: string
+	year: string
+	traffic: string
+	lower: string
+	upper: string
+	state: string
+	seqnumber: string
+	purpose: string
+	scope: string
+}
+
+type NOTAMList = {
+	AGA: string[]
+	NAV: string[]
+	ATM: string[]
+	CNS: string[]
+	OTR: string[]
 }
