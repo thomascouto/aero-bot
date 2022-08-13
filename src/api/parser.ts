@@ -1,5 +1,6 @@
 import { X2jOptions, XMLParser } from 'fast-xml-parser'
 
+const alwaysArrayNotam = ['aisweb.notam.item']
 const alwaysArrayMetar = ['response.data.METAR']
 const alwaysArrayTaf = ['response.data.TAF']
 const alwaysArrayRotaer = [
@@ -34,5 +35,9 @@ export const parseRequest = {
 
 	srss: (icao: string): SRSSResponse => {
 		return new XMLParser().parse(icao)
+	},
+
+	notam: (icao: string): NOTAMResponse => {
+		return new XMLParser(generateOptions(alwaysArrayNotam)).parse(icao)
 	},
 }
