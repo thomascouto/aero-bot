@@ -19,7 +19,7 @@ export class CaptainBot {
 			flag: '🇧🇷',
 		},
 		{
-			command: 'srss',
+			command: 'sunrise',
 			flag: '🇧🇷',
 		},
 		{
@@ -37,6 +37,14 @@ export class CaptainBot {
 		{
 			command: 'notam',
 			flag: '🇧🇷',
+		},
+		{
+			command: 'atis',
+			flag: '🇺🇸',
+		},
+		{
+			command: 'distance',
+			flag: '🌎',
 		},
 	]
 
@@ -61,7 +69,7 @@ export class CaptainBot {
 			}
 
 			this.bot.command(e.command, async (ctx) => {
-				await ctx.reply(`${e.flag} ICAO code:`)
+				await ctx.reply(`${e.flag} ICAO code`)
 				await ctx.conversation.enter(e.command)
 			})
 		}
@@ -74,7 +82,7 @@ export class CaptainBot {
 
 			if (icao.trim() === 'BYE') break
 			if (icao && icao.match(/^K[A-Z]{3}/)) {
-				ctx.reply(`Looking for ${icao} ATIS...`)
+				ctx.reply(`Looking for ATIS...`)
 				try {
 					const response = await request.atis(icao)
 					if (response.length === 2) {
@@ -121,7 +129,7 @@ export class CaptainBot {
 			if (icao === 'BYE') break
 
 			if (icao && icao.match(/^S[A-Z]{3}/)) {
-				ctx.reply(`Looking for ${icao} ROTAER...`)
+				ctx.reply(`Looking for ROTAER info...`)
 				try {
 					const response = await request.rotaer(icao)
 
@@ -149,7 +157,7 @@ export class CaptainBot {
 			if (icao === 'BYE') break
 
 			if (icao && icao.match(/^[A-Z]{4}/)) {
-				ctx.reply(`Looking for ${icao} METAR...`)
+				ctx.reply(`Looking for METAR...`)
 				try {
 					const response = await request.metar(icao)
 					await ctx.reply(response)
@@ -174,7 +182,7 @@ export class CaptainBot {
 			if (icao === 'BYE') break
 
 			if (icao && icao.match(/^[A-Z]{4}/)) {
-				ctx.reply(`Looking for ${icao} TAF...`)
+				ctx.reply(`Looking for TAF...`)
 				try {
 					const response = await request.taf(icao)
 					await ctx.reply(response)
@@ -192,7 +200,8 @@ export class CaptainBot {
 		await ctx.reply('Bye! ✈️')
 		return
 	}
-	private async srss(conversation: MyConversation, ctx: MyContext) {
+
+	private async sunrise(conversation: MyConversation, ctx: MyContext) {
 		while (true) {
 			const { message } = await conversation.wait()
 			const icao = message?.text?.toUpperCase() as string
@@ -200,7 +209,7 @@ export class CaptainBot {
 			if (icao === 'BYE') break
 
 			if (icao && icao.match(/^S[A-Z]{3}/)) {
-				ctx.reply(`Looking for ${icao} sunrise/sunset data...`)
+				ctx.reply(`Looking for sunrise/sunset data...`)
 				try {
 					const response = await request.srss(icao)
 					await ctx.reply(response)
@@ -219,6 +228,42 @@ export class CaptainBot {
 		return
 	}
 
+	private async distance(conversation: MyConversation, ctx: MyContext) {
+		while (true) {
+			const route = (await conversation.wait()).message?.text as string
+			ctx.reply(`Fetching great circle map... Stand by`)
+
+			try {
+				if (route && route.toUpperCase().match(/^[A-Z]{4}-[A-Z]{4}$/)) {
+					await ctx.replyWithPhoto(request.gc(route))
+				}
+			} catch (error) {
+				await ctx.reply(`Invalid format provided.`)
+			} finally {
+				await ctx.reply(`Type another ICAO or bye to quit.`)
+			}
+		}
+	}
+
+	private async notam(conversation: MyConversation, ctx: MyContext) {
+		while (true) {
+			const icao = (await conversation.wait()).message?.text as string
+			ctx.reply(`Fetching NOTAM... Stand by`)
+
+			try {
+				if (icao && icao.toUpperCase().match(/^S[A-Z]{3}$/)) {
+					request.notam(icao)
+					await ctx.reply('done')
+				}
+			} catch (error) {
+				console.log(error)
+				await ctx.reply(`Invalid format provided.`)
+			} finally {
+				await ctx.reply(`Type another ICAO or bye to quit.`)
+			}
+		}
+	}
+
 	private setup() {
 		this.bot.use(session({ initial: () => ({}) }))
 		this.bot.use(conversations())
@@ -226,7 +271,9 @@ export class CaptainBot {
 		this.bot.use(createConversation(this.rotaer))
 		this.bot.use(createConversation(this.metar))
 		this.bot.use(createConversation(this.taf))
-		this.bot.use(createConversation(this.srss))
+		this.bot.use(createConversation(this.sunrise))
+		this.bot.use(createConversation(this.distance))
+		this.bot.use(createConversation(this.notam))
 		this.bot.command('start', async (ctx) => {
 			await ctx.reply('Hello World!')
 		})
